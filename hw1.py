@@ -15,6 +15,7 @@ import PorterStemmer
 
 import glob
 import os
+import re
 from nltk.tokenize import sent_tokenize,word_tokenize
 
 MY_NAME = "Ankit Gole"
@@ -82,9 +83,10 @@ class Index(object):
     #     directory of text files to be indexed
     def index_dir(self, base_path):
         num_files_indexed = 0
-        # PUT YOUR CODE HERE
+
         for file in glob.glob(os.path.join(base_path,'*')):
-            self._documents.append(os.path.basename(file))
+            file_name = os.path.basename(file)
+            self._documents.append(file_name)
 
             file_tokens_list = []
 
@@ -95,8 +97,15 @@ class Index(object):
                         file_tokens_list.extend(file_token)
 
             self._all_tokens.extend(file_tokens_list)
+            stem_tokens = self.stemming(self._all_tokens)
+
+            for index in stem_tokens:
+                if not index in self._inverted_index:
+                    self._inverted_index[index] =
+
+
             num_files_indexed += 1
-        print(self._all_tokens)
+        print(self._inverted_index)
         return num_files_indexed
 
     # tokenize( text )
@@ -109,10 +118,11 @@ class Index(object):
     #   text - a string of terms
     def tokenize(self, text):
         tokens = []
-        split_words = word_tokenize(text)
+        filter_text = re.sub(r'[^a-zA-Z0-9]', ' ', text)
 
-        for each in split_words:
-            each.lower()
+        split_words = word_tokenize(filter_text)
+
+        tokens = [word.lower() for word in split_words]
 
         return tokens
 
@@ -124,7 +134,9 @@ class Index(object):
     #   tokens - a list of tokens
     def stemming(self, tokens):
         stemmed_tokens = []
-        # PUT YOUR CODE HERE
+        p = PorterStemmer.PorterStemmer()
+        stemmed_tokens = [p.stem(p=s_word,i=0,j=len(s_word)-1) for s_word in tokens]
+
         return stemmed_tokens
     
     # boolean_search( text )
