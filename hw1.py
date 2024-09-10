@@ -16,7 +16,7 @@ import PorterStemmer
 import glob
 import os
 import re
-from nltk.tokenize import sent_tokenize,word_tokenize
+from nltk.tokenize import word_tokenize
 
 MY_NAME = "Ankit Gole"
 MY_ANUM  = 901029661 # put your WPI numerical ID here
@@ -25,8 +25,7 @@ MY_EMAIL = "aggole@wpi.edu"
 # the COLLABORATORS list contains tuples of 2 items, the name of the helper
 # and their contribution to your homework
 COLLABORATORS = [ 
-    ('Bob Lee', 'helped me learn Python'),  
-    ('Brown Cheng', 'gave me coffee during office hours'),
+    ('Shreya Boyane', 'helped me in the logic for inverted index'),
     ]
 
 # Set the I_AGREE_HONOR_CODE to True if you agree with the following statement
@@ -68,8 +67,6 @@ class Index(object):
         #      'cat': [1],
         #      'slept': [1]
         #      }
-        # Storing all the file tokens in a single string
-        self._all_tokens = []
 
 
     # index_dir( base_path )
@@ -88,24 +85,29 @@ class Index(object):
             file_name = os.path.basename(file)
             self._documents.append(file_name)
 
+            # Storing tokens for each file in every loop
             file_tokens_list = []
 
+            # Iterating over every file and adding the tokens in the file_tokens_list
             with open(file,'r',encoding='utf-8') as data:
                 for text in data:
                     if text.strip():
                         file_token = self.tokenize(text)
                         file_tokens_list.extend(file_token)
 
-            self._all_tokens.extend(file_tokens_list)
-            stem_tokens = self.stemming(self._all_tokens)
+            # Calling the Stemming function
+            stem_tokens = self.stemming(file_tokens_list)
 
+            # Implementing the Inverted index logic after getting the Stemmed Tokens
             for index in stem_tokens:
-                if not index in self._inverted_index:
-                    self._inverted_index[index] =
+                if index not in self._inverted_index:
+                    self._inverted_index[index] = set()
 
+                self._inverted_index[index].add(len(self._documents)-1)
 
+            # Increment value of indexed file count after every loop
             num_files_indexed += 1
-        print(self._inverted_index)
+
         return num_files_indexed
 
     # tokenize( text )
@@ -118,10 +120,13 @@ class Index(object):
     #   text - a string of terms
     def tokenize(self, text):
         tokens = []
+
+        # Using Regex library as token delimiters
         filter_text = re.sub(r'[^a-zA-Z0-9]', ' ', text)
 
         split_words = word_tokenize(filter_text)
 
+        # Converting the tokens in lower case
         tokens = [word.lower() for word in split_words]
 
         return tokens
@@ -134,8 +139,9 @@ class Index(object):
     #   tokens - a list of tokens
     def stemming(self, tokens):
         stemmed_tokens = []
-        p = PorterStemmer.PorterStemmer()
-        stemmed_tokens = [p.stem(p=s_word,i=0,j=len(s_word)-1) for s_word in tokens]
+
+        # Calling the PorterStemmer Class and using the main function, stem
+        stemmed_tokens = [PorterStemmer.PorterStemmer().stem(p=s_word,i=0,j=len(s_word)-1) for s_word in tokens]
 
         return stemmed_tokens
     
@@ -150,7 +156,32 @@ class Index(object):
     #   text - a string of terms
     def boolean_search(self, text):
         results = []
-        # PUT YOUR CODE HERE
+        tokens = self.tokenize(text)
+        s_tokens = self.stemming(tokens)
+
+        # If the query consists of only 1 word
+        if len(s_tokens) == 1:
+            token = s_tokens[0]
+            if token in self._inverted_index:
+                results = [self._documents[doc_id] for doc_id in self._inverted_index[token]]
+            else:
+                return []
+        # If query consists of multiple words and using OR / AND operations
+        elif len(s_tokens) == 3 and s_tokens[1].lower() in {'or','and'}:
+            term1,operator,term2 = s_tokens[0],s_tokens[1].lower(),s_tokens[2]
+
+            t1 = self._inverted_index.get(term1,set())
+            t2 = self._inverted_index.get(term2,set())
+
+            if operator == 'or':
+                result_doc_id = t1.union(t2)
+            elif operator == 'and':
+                result_doc_id = t1.intersection(t2)
+            else:
+                return []
+
+            results = [self._documents[doc_id] for doc_id in result_doc_id]
+
         return results
     
 
