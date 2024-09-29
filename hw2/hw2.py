@@ -4,6 +4,7 @@
 #   student - a populated and instantiated cs547.Student object
 #   BetterIndex - a class which encapsulates the necessary logic for
 #     indexing and searching a corpus of text documents
+import re
 
 # we'll want this in our index
 import binarytree
@@ -15,20 +16,19 @@ from functools import reduce
 # ########################################
 
 import cs547
-MY_NAME = "Your Name"
-MY_ANUM  = 00000000 # put your UID here
-MY_EMAIL = "somewhere@wpi.edu"
+MY_NAME = "Ankit Gole"
+MY_ANUM  = 901029661 # put your UID here
+MY_EMAIL = "aggole@wpi.edu"
 
 # the COLLABORATORS list contains tuples of 2 items, the name of the helper
 # and their contribution to your homework
 COLLABORATORS = [ 
     ('Bob Lee', 'helped me learn Python'),
-    ('Brown Cheng', 'gave me coffee during office hours'),
     ]
 
 # Set the I_AGREE_HONOR_CODE to True if you agree with the following statement
 # "I do not lie, cheat or steal, or tolerate those who do."
-I_AGREE_HONOR_CODE = False
+I_AGREE_HONOR_CODE = True
 
 # this defines the student object
 student = cs547.Student(
@@ -120,6 +120,7 @@ class BetterIndex(object):
                             self._bt[term] = set()
                         if doc_idx not in self._bt[term]:
                             self._bt[term].add(doc_idx)
+        print(repr(self._bt.formattree()))
         return num_files_indexed
 
 
@@ -162,7 +163,27 @@ class BetterIndex(object):
     # parameters:
     #   text - a string of terms
     def wildcard_search_and(self, text):
-        # FILL OUT CODE HERE
+        results = []
+
+        if "*" in text:
+            tokens = self.tokenize(text,is_search=True)
+            tokens = [self._rotate(tokens[i]) for i in range(len(tokens))]
+
+        else:
+            tokens = self.tokenize(text)
+            tokens = [(tokens[i] + "$") for i in range(len(tokens))]
+        print(tokens)
+
+        if len(tokens) == 1:
+            t = tokens[0]
+            if "*" in t and t in self._bt:
+                print(re.search(r'$.^agg',self._bt))
+            else:
+                print(self._bt.find(t))
+        # elif len(text) == 2:
+        #     print(self._bt.find(t1))
+        #     print(self._bt.find(t2))
+
         return []
 
 
@@ -172,7 +193,7 @@ def main(args):
     print(student)
     index = BetterIndex()
     print("starting indexer")
-    num_files = index.index_dir('data/')
+    num_files = index.index_dir(base_path='D:/Information Retrieval/data/')
     #print index._bt.formattree()
     print("indexed %d files" % num_files)
     
