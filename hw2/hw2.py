@@ -47,10 +47,12 @@ student = cs547.Student(
 # returns: list of documents contained matching the term
 # parameters: a node within a binary tree and a term as a string
 def crawl_tree(node, term):
-    if not node: return set()
+    if not node:
+        return set()
     if ('*' in term and node.key.startswith(term[:-1])) or term == node.key:
         x = node.data
-    else: x = set()
+    else:
+        x = set()
     return x.union(crawl_tree(node.left, term)).union(crawl_tree(node.right, term))
     #if term <= node.key[:len(term)]:
     #    x = x.union(crawl_tree(node.left, term))
@@ -151,8 +153,19 @@ class BetterIndex(object):
     # parameters:
     #   text - a string of terms
     def wildcard_search_or(self, text):
-        # FILL OUT CODE HERE
-        return []
+        tokens = self.tokenize(text, is_search=True)
+        results = set()
+
+        for token in tokens:
+            if self.WILDCARD in token:
+                search_term = self._rotate(token)
+            else:
+                search_term = token + "$"
+
+            matches = crawl_tree(self._bt.root, search_term)
+            results = results.union(matches)
+
+        return [self._documents[i] for i in results]
 
 
     # wildcard_search_and( text )
@@ -163,28 +176,26 @@ class BetterIndex(object):
     # parameters:
     #   text - a string of terms
     def wildcard_search_and(self, text):
-        results = []
+        tokens = self.tokenize(text, is_search=True)
+        results = None
 
-        if "*" in text:
-            tokens = self.tokenize(text,is_search=True)
-            tokens = [self._rotate(tokens[i]) for i in range(len(tokens))]
-
-        else:
-            tokens = self.tokenize(text)
-            tokens = [(tokens[i] + "$") for i in range(len(tokens))]
-        print(tokens)
-
-        if len(tokens) == 1:
-            t = tokens[0]
-            if "*" in t and t in self._bt:
-                print(re.search(r'$.^agg',self._bt))
+        for token in tokens:
+            if self.WILDCARD in token:
+                search_term = self._rotate(token)
             else:
-                print(self._bt.find(t))
-        # elif len(text) == 2:
-        #     print(self._bt.find(t1))
-        #     print(self._bt.find(t2))
+                search_term = token + "$"
 
-        return []
+            matches = crawl_tree(self._bt.root, search_term)
+
+            if results is None:
+                results = matches
+            else:
+                results = results.intersection(matches)
+
+        if results:
+            return [self._documents[i] for i in results]
+        else:
+            return []
 
 
 # now, we'll define our main function which actually starts the indexer and
