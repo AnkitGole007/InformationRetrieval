@@ -22,8 +22,7 @@ MY_EMAIL = "aggole@wpi.edu"
 
 # the COLLABORATORS list contains tuples of 2 items, the name of the helper
 # and their contribution to your homework
-COLLABORATORS = [ 
-    ('Bob Lee', 'helped me learn Python'),
+COLLABORATORS = [
     ]
 
 # Set the I_AGREE_HONOR_CODE to True if you agree with the following statement
